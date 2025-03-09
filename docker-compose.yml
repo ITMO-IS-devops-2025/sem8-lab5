@@ -1,0 +1,71 @@
+services:
+  backend:
+    build: 
+      context: ./backend/panpipe-backend
+      dockerfile: ../Dockerfile
+      target: final
+    environment:
+      - ASPNETCORE_HTTP_PORTS=8080
+    depends_on:
+      db:
+        condition: service_healthy
+      db-identity:
+        condition: service_healthy
+    expose:
+      - 8080
+
+  frontend:
+    build:
+      context: ./frontend/panpipe-frontend
+      dockerfile: ../Dockerfile
+    expose:
+      - 3000
+    volumes:
+      - ./frontend/panpipe-frontend/public:/panpipe-frontend/public
+  
+  nginx-proxy:
+    build:
+      context: ./nginx
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx/conf/http.d:/etc/nginx/http.d
+
+  db:
+    image: postgres:17.4-alpine3.21
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=panpipe
+      - POSTGRES_PASSWORD=panpipe
+      - POSTGRES_DB=panpipe
+    volumes:
+      - db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  db-identity:
+    image: postgres:17.4-alpine3.21
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=panpipe
+      - POSTGRES_PASSWORD=panpipe
+      - POSTGRES_DB=panpipe-identity
+    volumes:
+      - db-identity-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-volume:
+  db-identity-volume:
