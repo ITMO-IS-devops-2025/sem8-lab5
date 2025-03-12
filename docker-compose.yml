@@ -1,9 +1,6 @@
 services:
   backend:
-    build: 
-      context: ./backend/panpipe-backend
-      dockerfile: ../Dockerfile
-      target: final
+    build: https://github.com/ITMO-IS-devops-2025/sem8-app-backend.git
     environment:
       - ASPNETCORE_HTTP_PORTS=8080
     depends_on:
@@ -15,13 +12,9 @@ services:
       - 8080
 
   frontend:
-    build:
-      context: ./frontend/panpipe-frontend
-      dockerfile: ../Dockerfile
+    build: https://github.com/ITMO-IS-devops-2025/sem8-app-frontend.git
     expose:
       - 3000
-    volumes:
-      - ./frontend/panpipe-frontend/public:/panpipe-frontend/public
   
   nginx-proxy:
     build:
